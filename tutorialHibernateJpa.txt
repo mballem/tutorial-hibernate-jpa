@@ -1,0 +1,400 @@
+<strong>Introdu��o</strong>
+<p style="text-align:justify;">Este tutorial poderia ser uma segunda parte do tutorial anterior <em><a title="Utilizando Swing com Banco de�Dados" href="http://mballem.wordpress.com/2011/02/21/utilizando-swing-com-banco-de-dados/" target="_blank">Utilizando Swing com Banco de Dados</a></em>, a classe de interface com usu�rio � 99% a mesma, a classe <em>controller</em> idem.</p>
+<p style="text-align:justify;">O que est� diferente aqui � que utilizaremos o <em>framework</em> <em>Hibernate</em>, para a persist�ncia com banco de dados, com JPA (<em>Java Persistence API</em>).</p>
+<p style="text-align:justify;">Utilizaremos desta vez o banco de dados <em>HSQLDB</em> no modo <em>standalone</em>, mas quem preferir pode continuar utilizando o <em>MySql</em> como no tutorial anterior, � s� utilizar as mesmas configura��es de url, drive, usu�rio e senha, quando for necess�rio utilizar.</p>
+<p style="text-align:justify;">O padr�o MVC tamb�m ser� seguido como no tutorial anterior, do link acima, ent�o caso n�o tenha lido o tutorial anterior, seria importante ler a respeito do que � o padr�o MVC.</p>
+<strong>1. </strong>Arquivos necess�rios<strong> </strong>
+<p style="text-align:justify;">Para o desenvolvimento deste tutorial ser�o necess�rias algumas bibliotecas referentes ao Hibernate e a JPA, e mais algumas que necessitam ser utilizadas como algumas depend�ncias.� E tamb�m � claro do Driver JDBC do HSQLDB ou do MySql.</p>
+Veja as bibliotecas necess�rias na figura 1.
+<p style="text-align:center;"></p>
+
+
+[caption id="attachment_196" align="aligncenter" width="245" caption="Figura 1 - Bibliotecas"]<a href="http://mballem.files.wordpress.com/2011/02/bibliotecas.png"><img class="size-full wp-image-196 " title="bibliotecas" src="http://mballem.files.wordpress.com/2011/02/bibliotecas.png" alt="Figura 1" width="245" height="278" /></a>[/caption]
+
+Montei um pacote com todas as bibliotecas e as disponibilizei para download <a title="bibliotecas" href="http://www.megaupload.com/?d=UHR7G6WI" target="_blank">aqui</a>.
+
+<strong>2. </strong>Java Persistence API e Hibernate
+<p style="text-align:justify;">JPA � uma especifica��o padr�o do�Java para�persist�ncia de dados. A JPA define um meio de�mapeamento objeto-relacional�para objetos Java, os chamados <em>POJOs</em>, denominados�<em>beans</em> de entidade.</p>
+<p style="text-align:justify;">Diversos�<em>frameworks</em> de mapeamento objeto/relacional, como o�<em>Hibernate</em>, implementam a JPA gerenciando o desenvolvimento de entidades do�Modelo Relacional�usando a plataforma nativa�Java SE�e�Java EE.</p>
+<p style="text-align:justify;">O <em>Hibernate</em> � um <em>framework</em> para mapeamento objeto-relacional, totalmente escrito em Java. O principal objetivo do <em>Hibernate</em> � diminuir a complexidade entre os programas escritos em Java, baseando-se no modelo orientado objeto.</p>
+<p style="text-align:justify;">Quando utilizamos o <em>HIbernate</em>, deixamos de trabalhar com tabelas e colunas, e passamos a trabalhar com objetos. Quem j� desenvolveu em Java com banco de dados e utilizando <em>ResultSet</em> e <em>PreparedStatement</em> para criar consultas e outras a��es com o banco de dados, trabalhou diretamente com tabelas e colunas. Utilizando o <em>Hibernate</em>, as tabelas e colunas s�o mapeadas por mapeamentos XML ou anota��es, e a partir da� trabalhamos apenas com objetos, o que facilita em muito o desenvolvimento.</p>
+<p style="text-align:justify;"></p>
+<strong> </strong>
+
+<strong>3. </strong>Arquivo persistence.xml
+
+Quando utilizamos JPA, precisamos utilizar um arquivo que contem algumas configura��es importantes para a conex�o com o banco de dados atrav�s do <em>Hibernate</em>. Este arquivo deve ser chamado de <strong><em>persistence.xml</em></strong> e estar dentro de um diret�rio chamado <strong><em>META-INF</em></strong> no <em>classpath</em> da aplica��o, ou seja, no mesmo n�vel do pacote main.java.br, o primeiro pacote dos fontes, veja na figura 2.
+
+[caption id="attachment_197" align="aligncenter" width="280" caption="Figura 2 - Projeto"]<a href="http://mballem.files.wordpress.com/2011/02/projeto.png"><img class="size-full wp-image-197" title="projeto" src="http://mballem.files.wordpress.com/2011/02/projeto.png" alt="Figura 2" width="280" height="173" /></a>[/caption]
+
+<strong>Listagem 1. </strong>Arquivo persistence.xml
+
+[sourcecode language="xml"]
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="http://java.sun.com/xml/ns/persistence" version="2.0">
+
+��� <persistence-unit name="agenda" transaction-type="RESOURCE_LOCAL">
+������� <class>main.java.br.mb.tutorialHibernateJpa.model.Contato</class>
+������� <properties>
+����������� <property name="hibernate.connection.url" value="jdbc:hsqldb:file:./db/agenda"/>
+����������� <property name="hibernate.connection.driver_class" value="org.hsqldb.jdbcDriver"/>
+����������� <property name="hibernate.connection.username" value="SA"/>
+����������� <property name="hibernate.connection.password" value=""/>
+����������� <property name="hibernate.dialect" value="org.hibernate.dialect.HSQLDialect"/>
+����������� <property name="hibernate.show_sql" value="true"/>
+����������� <property name="hibernate.format_sql" value="true"/>
+����������� <property name="hibernate.hbm2ddl.auto" value="update"/>
+������� </properties>
+��� </persistence-unit>
+
+</persistence>
+[/sourcecode]
+
+<strong> </strong>
+<p style="text-align:justify;">A tag <strong><em>persistence-unit</em></strong> possui dois elementos importantes, o <strong><em>name</em></strong> que recebe um nome para identificar as configura��es e o <strong><em>transaction-type</em></strong> que indica se aplica��o ser� com ou sem container (servidor web).</p>
+<p style="text-align:justify;">Precisamos tamb�m indicar neste arquivo onde se encontra o mapeamento, para isso, usamos a tag <strong><em>class</em></strong> e nela indicamos a classe que cont�m as anota��es referentes a tabela Contatos. As demais tags, filhas de <strong><em>properties</em></strong>, s�o referentes as configura��es do <em>Hibernate</em>, como as configura��es para conex�o e para exibir alguns <em>logs</em> no console dos SQLs executados.</p>
+<p style="text-align:justify;"></p>
+<strong>4. </strong>Tabela contatos
+<p style="text-align:justify;">Desta vez n�o iremos precisar de script para criar a tabela Contatos no banco de dados, a JPA nos fornece uma maneira simples para isso. Basta a cria��o de um m�todo que atrav�s dos mapeamentos as tabelas s�o geradas. Para criar o banco de dados basta executar a classe principal <em>GeraBanco</em>, conforme a listagem 2.</p>
+<strong>Listagem 2. </strong>Gerando o banco de dados.
+
+[sourcecode language="java"]
+package main.java.br.mb.tutorialHibernateJpa.agenda;
+
+import org.hibernate.cfg.Configuration;
+import org.hibernate.ejb.Ejb3Configuration;
+import org.hibernate.tool.hbm2ddl.SchemaExport;
+
+public class GeraBanco {
+��� public static void main(String[] args) {
+� ������Ejb3Configuration cfg = new Ejb3Configuration();
+
+������� //agenda eh o nome do persistence-unit no persistence.xml.
+������� cfg.configure("agenda", null);
+
+������� Configuration hbmcfg = cfg.getHibernateConfiguration();
+
+������� SchemaExport schemaExport = new SchemaExport(hbmcfg);
+������� schemaExport.create(true, true);
+��� }
+}
+[/sourcecode]
+<p style="text-align:justify;">Ao gerar o banco de dados <em>HSQLDB</em>, ser� criada uma pasta chamada �db� e dentro dela estar�o os arquivos do banco de dados. Esta pasta ser� gerada um n�vel acima do pacote dos arquivos fontes da aplica��o, ou seja, no mesmo n�vel em que voc� deve ter o pacote �lib�, veja na figura 2.</p>
+<p style="text-align:justify;">Quem utilizar um banco de dados no modo servidor, como o <em>Mysql</em> ou outros, algumas vezes ser� necess�rio criar o banco de dados manualmente no gerenciador, para ent�o rodar a classe <em>GeraBanco</em>, que ela ir� criar as tabelas.</p>
+<strong>5. </strong>Classe de Conex�o
+<p style="text-align:justify;">Trabalhando com JPA/Hibernate, teremos uma classe de conex�o diferente do que temos quando criamos uma conex�o direta por JDBC. No caso da JPA devemos criar uma classe conforme a listagem 3. Essa classe vai ler as configura��es do arquivo <strong><em>persistence.xml</em></strong> e configurar uma �fabrica de conex�es� para o sistema. Sempre que for necess�ria uma conex�o, faremos uma chamada ao m�todo est�tico <strong><em>getEntityManager()</em></strong>.</p>
+<strong>Listagem 3. </strong>Classe EntityManagerUtil
+
+[sourcecode language="java"]
+package main.java.br.mb.tutorialHibernateJpa.dao;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+
+public class EntityManagerUtil {
+� private static EntityManagerFactory emf;
+
+�������� public static EntityManager getEntityManager() {
+���������������� if (emf == null){
+������������������������� emf = Persistence.createEntityManagerFactory("agenda");
+���������������� }
+���������������� return emf.createEntityManager();
+�������� }
+}
+[/sourcecode]
+
+<strong> </strong>
+
+<strong>6. </strong>Classe GenericDao
+
+Vamos criar uma classe gen�rica para os m�todos <em>insert</em>, <em>update</em> e <em>delete, </em> e algumas consultas que podem ser padr�o para v�rias entidades, veja na listagem 4.
+
+<strong>Listagem 4. </strong>Classe GenericDao
+
+[sourcecode language="java"]
+package main.java.br.mb.tutorialHibernateJpa.dao;
+
+import org.hibernate.Session;
+import org.hibernate.criterion.Restrictions;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import javax.persistence.PersistenceContext;
+import java.io.Serializable;
+import java.lang.reflect.ParameterizedType;
+import java.util.List;
+
+public class GenericDao<T extends Serializable> {
+
+��� @PersistenceContext(unitName = "agenda")
+��� private final EntityManager entityManager;
+��� private final Class<T> persistentClass;
+
+��� public GenericDao() {
+������� this.entityManager = EntityManagerUtil.getEntityManager();
+������� this.persistentClass = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+��� }
+
+��� public EntityManager getEntityManager() {
+������� return entityManager;
+��� }
+
+��� protected void save(T entity) {
+������� EntityTransaction tx = getEntityManager().getTransaction();
+
+������� try {
+����������� tx.begin();
+����������� getEntityManager().persist(entity);
+����������� tx.commit();
+������� } catch (Throwable t) {
+����������� t.printStackTrace();
+��������� ��tx.rollback();
+������� } finally {
+����������� close();
+������� }
+��� }
+
+��� protected void update(T entity) {
+������� EntityTransaction tx = getEntityManager().getTransaction();
+
+������� try {
+����������� tx.begin();
+����������� getEntityManager().merge(entity);
+����������� tx.commit();
+������� } catch (Throwable t) {
+����������� t.printStackTrace();
+����������� tx.rollback();
+������� } finally {
+����������� close();
+������� }
+
+��� }
+
+��� protected void delete(T entity) {
+������� EntityTransaction tx = getEntityManager().getTransaction();
+
+������� try {
+����������� tx.begin();
+����������� getEntityManager().remove(entity);
+����������� tx.commit();
+������� } catch (Throwable t) {
+����������� t.printStackTrace();
+����������� tx.rollback();
+������� } finally {
+����������� close();
+������� }
+��� }
+
+��� public List<T> findAll() throws Exception {
+������� Session session = (Session) getEntityManager().getDelegate();
+������� return session.createCriteria(persistentClass).list();
+��� }
+
+��� public T findByName(String nome) {
+������� Session session = (Session) getEntityManager().getDelegate();
+������� return (T) session.createCriteria(persistentClass).add(Restrictions.eq("nome", nome).ignoreCase()).uniqueResult();
+��� }
+
+��� public T findById(long id) {
+������� Session session = (Session) getEntityManager().getDelegate();
+������� return (T) session.createCriteria(persistentClass).add(Restrictions.eq("id", id)).uniqueResult();
+��� }
+
+��� private void close() {
+������� if (getEntityManager().isOpen()) {
+����������� getEntityManager().close();
+������� }
+������� shutdown();
+��� }
+
+��� private void shutdown() {
+������� EntityManager em = EntityManagerUtil.getEntityManager();
+������� EntityTransaction tx = em.getTransaction();
+������� tx.begin();
+������� em.createNativeQuery("SHUTDOWN").executeUpdate();
+������� em.close();
+��� }
+}
+[/sourcecode]
+
+A anota��o @<strong><em>PersistenteContex() </em></strong>indica qual classe ser� respons�vel pela persist�ncia dos dados. A vari�vel <strong><em>persistentClass</em></strong> � utilizada para termos acesso a entidade que est� sendo executada no momento. Utilizamos o tipo gen�rico na classe, e � atrav�s do tipo gen�rico que obtemos a entidade para utiliz�-la nas consultas, veremos mais a frente.
+
+No construtor da classe criamos um objeto <strong><em>EntityManager</em></strong>, que nos dar� acesso ao m�todos necess�rios, e obtemos a entidade que est� utilizando a classe no momento.
+
+Nos m�todos <em>save</em>, <em>update</em> e <em>delete</em>, precisamos criar uma transa��o, abrir est� transa��o e ent�o executar o que queremos fazer. No caso do m�todo <em>save()</em>, utilizamos o <em>persist()</em>, que recebe como par�metro um objeto e o <em>framework</em> executa um <em>insert</em> atrav�s dele. A grande vantagem � que n�o precisamos nos preocupar com o SQL de <em>insert</em>, <em>update</em> ou <em>delete</em>, s� passamos o objeto e o <em>framework</em> faz o resto.
+
+Depois da execu��o, se tudo ocorrer bem � executado um <em>commit</em> na transa��o do banco de dados e ent�o um close � chamado para fechar a comunica��o com o banco de dados.
+<table border="1" cellspacing="0" cellpadding="0">
+<tbody>
+<tr>
+<td width="614" valign="top"><span style="color:#993300;">Uma observa��o para quem n�o   est� utilizando o HSQLDB, o m�todo <strong><em>shutdown()</em></strong> n�o deve ser utilizado,   este m�todo � utilizado apenas no HSQLDB. No artigo <em><a title="JDBC com Banco de Dados�Standalone" href="http://mballem.wordpress.com/2011/02/02/jdbc-com-banco-de-dados-standalone/" target="_blank">JDBC com Banco de Dados Standalone</a> </em>eu falo sobre isso.</span></td>
+</tr>
+</tbody>
+</table>
+Nas consultas foi utilizada a API <em>Criteria</em>, uma forma diferente de fazer o �<em>select</em>� quando utilizamos orienta��o objetos e n�o objetos relacionais. Outra forma que pode ser utilizada � o HQL, um dialeto SQL para o <em>Hibernate</em>, uma consulta muito parecida com o SQL, por�m se trabalha com objetos e seus atributos e n�o com tabelas e colunas.
+
+Quando utilizamos <em>Criteria</em>, precisamos indicar qual a entidade que far� a consulta, por isso, utilizamos a vari�vel <strong><em>persistentClass</em></strong>, para passarmos para o m�todo qual entidade est� sendo executada no momento da consulta. Seria como se ele estivesse passando por par�metro algo como isto: <em>Contato.class</em>
+
+<strong> </strong>
+
+<strong>7. </strong>Classe Contato
+
+Nossa classe contato ter� como atributos os campos da tabela Contatos, mapeados em forma de anota��es. Atrav�s das anota��es podemos passar todas as informa��es que uma coluna teria, como o tipo de dado, tamanho, nome, entre outros.
+
+<strong>Listagem 5. </strong>Classe Contato
+
+[sourcecode language="java"]
+package main.java.br.mb.tutorialHibernateJpa.model;
+
+import java.sql.Date;
+import javax.persistence.*;
+import java.io.Serializable;
+
+@Entity
+@Table(name = "CONTATOS")
+public class Contato implements Serializable {
+��� private static final long serialVersionUID = 1L;
+
+��� @Id
+��� @GeneratedValue(strategy = GenerationType.IDENTITY)
+��� @Column(name = "ID_CONTATO")
+��� private Long id;
+��� @Column(name = "NOME")
+��� private String nome;
+��� @Column(name = "APELIDO")
+��� private String apelido;
+��� @Temporal(TemporalType.DATE)
+��� @Column(name = "DATA_NASCIMENTO")
+��� private Date dtNascimento;
+��� //gere os m�todos getters and setters
+}
+[/sourcecode]
+
+<strong> </strong>
+
+<strong>8. </strong>Classe ContatoDao
+<p style="text-align:justify;">Criamos a classe <em>GenericDao</em> para ser herdadas pelos demais dao�s, assim, vamos agora criar a classe <em>ContatoDao</em>, onde estar�o os m�todos mais espec�ficos da classe. Veja na listagem 6.<strong> </strong></p>
+<strong>Listagem 6. </strong>Classe ContatoDao
+
+[sourcecode language="java"]
+package main.java.br.mb.tutorialHibernateJpa.dao;
+
+import main.java.br.mb.tutorialHibernateJpa.model.Contato;
+
+public class ContatoDao extends GenericDao<Contato> {
+
+��� public void salvar(Contato contato) {
+������� save(contato);
+��� }
+
+��� public void alterar(Contato contato) {
+������� update(contato);
+��� }
+
+��� public void excluir(long id) {
+������� Contato c = findById(id);
+������� delete(c);
+��� }
+
+}
+[/sourcecode]
+<p style="text-align:justify;">Veja que utilizamos heran�a nesta classe, herdando os m�todos criados na classe <em>GenericDao</em>. Nossos m�todos <em>salvar()</em>, <em>alterar()</em> e <em>excluir()</em> n�o possuem mais a cria��o do SQL que ser� executado no banco de dados, como no artigo anterior, e sim uma chamada ao m�todo da classe <em>GenericDao</em> e l� os m�todos do <em>EntityManager</em> far�o o trabalho.</p>
+<strong>9. </strong>Classe ContatoController
+<p style="text-align:justify;">Pouqu�ssimas altera��es ser�o feitas na classe controller em rela��o a classe controller do artigo anterior. Apenas foram alterados o nome do pacote do projeto, as exce��es que antes eram <em>SQLException</em> para <em>Exception</em> e no m�todo <em>listaContatos()</em> o retorno foi alterado de <em>dao.findContatos()</em> para <em>dao.findAll()</em>, j� que agora temos um m�todo gen�rico e n�o exclusivo para contatos.</p>
+<p style="text-align:justify;">Essa � uma das vantagens do padr�o MVC, n�s podemos modificar parte do projeto sem que influencie drasticamente em outros pontos dele.<strong> </strong></p>
+<strong>Listagem 7. </strong>Classe ContatoController
+
+[sourcecode language="java"]
+package main.java.br.mb.tutorialHibernateJpa.controller;
+
+import main.java.br.mb.tutorialHibernateJpa.dao.ContatoDao;
+import main.java.br.mb.tutorialHibernateJpa.model.Contato;
+
+import javax.swing.*;
+import java.sql.Date;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.List;
+
+public class ContatoController {
+
+��� private Date formatarData(String data) throws ParseException {
+������� DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+������� return new Date( formatter.parse(data).getTime() );
+��� }
+
+��� public void salvar(String nome, String apelido, String dtNascimento) throws Exception {
+������� Contato contato = new Contato();
+������� contato.setNome(nome);
+������� contato.setApelido(apelido);
+������� contato.setDtNascimento(formatarData(dtNascimento));
+
+������� new ContatoDao().salvar(contato);
+��� }
+
+��� public void alterar(long id, String nome, String apelido, String dtNascimento) throws Exception {
+������� Contato contato = new Contato();
+������� contato.setId(id);
+�� �����contato.setNome(nome);
+������� contato.setApelido(apelido);
+������� contato.setDtNascimento(formatarData(dtNascimento));
+
+������� new ContatoDao().alterar(contato);
+��� }
+
+��� public List<Contato> listaContatos() {
+������� ContatoDao dao = new ContatoDao();
+������� try {
+����������� return dao.findAll();
+������� } catch (SQLException e) {
+����������� JOptionPane.showMessageDialog(null, "Problemas ao localizar contato\n" + e.getLocalizedMessage());
+������� }
+������� return null;
+��� }
+
+��� public void excluir(long id) throws Exception {
+������� new ContatoDao().excluir(id);
+��� }
+
+��� public Contato buscaContatoPorNome(String nome) throws Exception {
+������� ContatoDao dao = new ContatoDao();
+������� return dao.findByName(nome);
+��� }
+}
+[/sourcecode]
+
+<strong> </strong>
+
+<strong>9. </strong>Classe ContatoFrame
+
+A interface continua a mesma, uma interface como a da figura 3.
+<p style="text-align:center;"></p>
+
+
+[caption id="attachment_184" align="aligncenter" width="300" caption="Figura 3 - Interface Contatos "]<a href="http://mballem.files.wordpress.com/2011/02/tela.png"><img class="size-medium wp-image-184 " title="tela " src="http://mballem.files.wordpress.com/2011/02/tela.png?w=300" alt="Figura 3 - Interface Contatos" width="300" height="190" /></a>[/caption]
+
+<strong> </strong>
+
+<strong> </strong>
+<p style="text-align:justify;">A classe <em>ContatoFrame</em> sofreu altera��es m�nimas, que foram apenas, alterar as exce��es <em>SQLException</em> por exce��es do tipo <em>Exception</em>. Fa�a essa altera��o e nos casos dos m�todos que tenham dois tipos de exce��es, deixe a <em>Exception</em> no �ltimo <em>catch{}</em>.</p>
+<p style="text-align:justify;">Essa classe n�o foi postada no artigo, mas voc� pode peg�-la no tutorial anterior, acessando <em><a title="Utilizando Swing com Banco de�Dados" href="http://mballem.wordpress.com/2011/02/21/utilizando-swing-com-banco-de-dados/" target="_blank">Utilizando Swing com Banco de Dados</a></em>, e � claro, n�o se esque�a de alterar o nome do pacote e dos <em>imports</em> de <em>ContatoController</em> e <em>Contato</em>.</p>
+<strong> </strong>
+
+<strong>Conclus�o</strong>
+<p style="text-align:justify;">Este tutorial demonstrou como configurar e criar um projeto utilizando JPA com <em>Hibernate</em>. Fazendo uma compara��o com o tutorial �<em>Utilizando Swing com Banco de Dados�</em>, onde utilizamos conex�o direta com JDBC e utiliz�vamos <em>PreparedStatement</em> e <em>ResultSet</em>, e os SQLs para consultas e demais m�todos com banco de dados, o <em>framework</em> <em>Hibernate</em> nos facilita muito nesse ponto.</p>
+<p style="text-align:justify;">Tamb�m podemos comparar como � v�lido separar as camadas da aplica��o utilizando o padr�o MVC, assim, facilita muito a manuten��o dos c�digos.</p>
+<strong> </strong>
+
+<strong>Saiba mais</strong>
+<ul>
+	<li>Criteria <a href="http://download.oracle.com/javaee/6/tutorial/doc/gjitv.html" target="new">http://download.oracle.com/javaee/6/tutorial/doc/gjitv.html</a></li>
+	<li>Gen�ricos em Java <a href="http://en.wikipedia.org/wiki/Generics_in_Java" target="new">http://en.wikipedia.org/wiki/Generics_in_Java</a></li>
+	<li>HQL <a href="http://docs.jboss.org/hibernate/core/3.3/reference/en/html/queryhql.html" target="new">http://docs.jboss.org/hibernate/core/3.3/reference/en/html/queryhql.html</a></li>
+	<li>Criteria com hibernate <a href="http://docs.jboss.org/hibernate/core/3.3/reference/en/html/querycriteria.html" target="new">http://docs.jboss.org/hibernate/core/3.3/reference/en/html/querycriteria.html</a></li>
+	<li>JPA <a href="http://www.oracle.com/technetwork/articles/javaee/jpa-137156.html" target="new">http://www.oracle.com/technetwork/articles/javaee/jpa-137156.html</a></li>
+	<li>Hibernate Annotations <a href="http://docs.jboss.org/hibernate/annotations/3.5/reference/en/html/entity.html" target="new">http://docs.jboss.org/hibernate/annotations/3.5/reference/en/html/entity.html</a></li>
+	<li>Graphical User Interface <a href="http://download.oracle.com/javase/tutorial/ui/index.html" target="new">http://download.oracle.com/javase/tutorial/ui/index.html</a></li>
+</ul>
+Dispon�vel�em Pdf: <a href='http://mballem.files.wordpress.com/2011/02/tutorialhibernatejpa.pdf' target='new'>Download</a>
