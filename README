@@ -1,0 +1,6 @@
+Arquivos fontes do projeto: Utilizando Swing com JPA/Hibernate
+http://mballem.wordpress.com/2011/02/24/utilizando-swing-com-jpahibernate/
+
+Os fontes estão na estrutura de projetos Maven 2.
+
+Para quem não tem conhecimento básico de Maven, veja as bibliotecas necessárias no arquivo pom.xml.
